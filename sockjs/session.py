@@ -82,9 +82,10 @@ class Session(object):
             self.expires = datetime.now() + timeout
 
     @asyncio.coroutine
-    def _acquire(self, manager, heartbeat=True):
+    def _acquire(self, manager, heartbeat=True, transport=None):
         self.acquired = True
         self.manager = manager
+        self.transport = transport
         self._heartbeat_transport = heartbeat
 
         self._tick()
@@ -108,6 +109,7 @@ class Session(object):
     def _release(self):
         self.acquired = False
         self.manager = None
+        self.transport = None
         self._heartbeat_transport = False
 
     def _heartbeat(self):
@@ -358,7 +360,7 @@ class SessionManager(dict):
         return session
 
     @asyncio.coroutine
-    def acquire(self, s):
+    def acquire(self, s, transport):
         sid = s.id
 
         if sid in self.acquired:
@@ -366,7 +368,7 @@ class SessionManager(dict):
         if sid not in self:
             raise KeyError('Unknown session')
 
-        yield from s._acquire(self)
+        yield from s._acquire(self, transport=transport)
 
         self.acquired[sid] = True
         return s
