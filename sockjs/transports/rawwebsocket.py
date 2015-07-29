@@ -50,7 +50,7 @@ class RawWebSocketTransport(Transport):
         ws.start(self.request)
 
         try:
-            yield from self.manager.acquire(self.session)
+            yield from self.manager.acquire(self.session, self)
         except:  # should use specific exception
             yield from ws.close(message='Go away!')
             return ws
